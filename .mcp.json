@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "choerodon-yuque-link": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${PLUGIN_ROOT}/server.cjs"
+      ],
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

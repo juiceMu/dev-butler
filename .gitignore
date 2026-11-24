@@ -1,0 +1,43 @@
+# 依赖、构建产物和本地工具缓存
+node_modules/
+/widget.bundle.js
+/coverage/
+/playwright-report/
+/test-results/
+.DS_Store
+*.log
+
+# 本机配置、凭据及私有数据
+.env
+.env.*
+!.env.example
+.npmrc
+*.local
+*.local.*
+*.pem
+*.key
+*.p12
+*.pfx
+/.codex/
+/.obsidian/
+
+# 实机验证证据、本地过程记录和临时原型
+/verification/
+/DEVELOPMENT-AUDIT.md
+/DEVELOPMENT-CHECKPOINT.md
+/prototype-all.html
+/prototype-link-b.html
+
+# 本地工作区状态、索引、备份和导出
+/.omc/
+/.idea/
+/.vscode/
+/local-data/
+/backups/
+/exports/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*

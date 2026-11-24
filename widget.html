@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>工作联动</title>
+  <style>
+    :root { color-scheme: light dark; font-family: -apple-system, BlinkMacSystemFont, sans-serif; --bg: #fff; --surface: #f7f7f6; --text: #242424; --muted: #666; --border: #dededb; --accent: #276a57; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #202120; --surface: #2a2b2a; --text: #eee; --muted: #b4b4af; --border: #454642; --accent: #88cbb0; } }
+    * { box-sizing: border-box; } body { margin: 0; color: var(--text); background: var(--bg); font-size: 14px; line-height: 1.5; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 24px; border-bottom: 1px solid var(--border); }
+    h1 { margin: 0; font-size: 18px; } h2 { margin: 0 0 12px; font-size: 16px; } h3 { margin: 0 0 12px; font-size: 14px; }
+    .status, .muted { color: var(--muted); } .status { font-size: 12px; } main { max-width: 1120px; margin: auto; padding: 0 24px 48px; }
+    nav { display: flex; gap: 20px; border-bottom: 1px solid var(--border); overflow-x: auto; } nav button { white-space: nowrap; background: transparent; color: var(--muted); border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 13px 2px; }
+    nav button[aria-selected="true"] { color: var(--text); border-color: var(--text); font-weight: 600; }
+    section { padding-top: 24px; } .columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(270px, 0.8fr); gap: 40px; } .stack { display: grid; gap: 14px; }
+    label { display: grid; gap: 5px; font-size: 13px; font-weight: 500; } input, textarea, select { width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 8px 10px; } textarea { min-height: 150px; resize: vertical; }
+    input[type="checkbox"] { width: auto; } .check { display: flex; align-items: center; gap: 8px; } .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    button { font: inherit; cursor: pointer; border: 1px solid var(--text); border-radius: 5px; color: var(--bg); background: var(--text); padding: 7px 12px; } button.secondary { color: var(--text); background: transparent; border-color: var(--border); }
+    button:hover { opacity: .8; } :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: start; } .row { display: flex; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); } .row p { margin: 4px 0 0; overflow-wrap: anywhere; } #location-results > div { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; } #location-results span { min-width: 0; overflow-wrap: anywhere; } #location-results button { flex-shrink: 0; }
+    .empty { color: var(--muted); padding: 20px 0; } .notice { min-height: 24px; margin-top: 12px; color: var(--accent); } .notice.error { color: #c74343; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; background: var(--surface); padding: 14px; border-radius: 5px; min-height: 72px; } [hidden] { display: none !important; }
+    dialog { width: min(440px, calc(100% - 32px)); color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 20px; }
+    dialog::backdrop { background: rgba(0, 0, 0, .45); } dialog p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0 0 20px; } dialog .actions { justify-content: flex-end; }
+    :root { --bg: #ffffff; --surface: #f5f7f6; --text: #202824; --muted: #5f6d65; --border: #dbe2de; --accent: #22694f; --accent-soft: #e9f3ed; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #1d211f; --surface: #272e2a; --text: #e9f0ec; --muted: #b2c0b7; --border: #455149; --accent: #8fd1ad; --accent-soft: #293e32; } }
+    body { line-height: 1.55; } header { padding: 18px 32px; } header h1 { font-size: 20px; font-weight: 650; }
+    .status { padding: 4px 10px; border-radius: 4px; background: var(--surface); color: var(--muted); font-weight: 600; }
+    main { max-width: 1180px; padding: 0 32px 56px; }
+    nav { gap: 26px; } nav button { padding: 16px 2px 13px; } nav button[aria-selected="true"] { border-color: var(--accent); }
+    section { padding-top: 28px; } h2 { font-size: 20px; line-height: 1.35; margin-bottom: 14px; } h3 { font-size: 15px; }
+    #account-status { margin: 0 0 20px; } #search-form .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; }
+    label { color: var(--text); font-size: 13px; font-weight: 600; gap: 7px; }
+    input, textarea, select { min-height: 40px; padding: 9px 12px; } input:hover, textarea:hover, select:hover { border-color: var(--muted); }
+    input:disabled, select:disabled, button:disabled { cursor: not-allowed; opacity: .55; } button { min-height: 38px; font-weight: 600; }
+    button:not(.secondary):not([role="tab"]) { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+    button.secondary:hover { background: var(--surface); opacity: 1; } button:not(:disabled):active { transform: translateY(1px); }
+    #project-scope { margin: 18px 0 0; } #search-result > p.muted { padding: 14px 0; margin: 12px 0 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .row { align-items: center; padding: 17px 0; gap: 20px; } .row > div:first-child { min-width: 0; } .row strong { display: block; line-height: 1.45; overflow-wrap: anywhere; } .row p { font-size: 13px; margin-top: 6px; }
+    .row > div:first-child { flex: 1; } .row > button, .row .actions { flex-shrink: 0; } .empty { margin: 0; padding: 22px 0; }
+    .issue-sessions:not(:empty) { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .issue-sessions .session-count { margin: 0 0 4px; color: var(--accent); font-weight: 600; }
+    .linked-session { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; }
+    .linked-session .history-output { flex-basis: 100%; overflow-wrap: anywhere; }
+    .generation-status:empty { display: none; }
+    .generation-status:not(:empty) { display: flex; align-items: flex-start; gap: 9px; flex-basis: 100%; margin: 4px 0 0; padding: 10px 12px; border-radius: 6px; background: var(--surface); color: var(--muted); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+    .generation-status[data-state="loading"]::before { content: ''; flex: 0 0 14px; height: 14px; margin-top: 3px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: generation-spin .9s linear infinite; }
+    .generation-status[data-state="error"] { color: #a33232; background: #fff2f0; }
+    @media (prefers-color-scheme: dark) { .generation-status[data-state="error"] { color: #ffb5ad; background: #402b29; } }
+    @keyframes generation-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .generation-status[data-state="loading"]::before { animation: none; } }
+    .linked-session > div { min-width: 0; } .session-title, .session-id { display: block; overflow-wrap: anywhere; }
+    .link-group { padding: 16px 0; border-bottom: 1px solid var(--border); } .link-group > p { margin: 5px 0; font-size: 13px; } .link-group .row:last-child { border-bottom: 0; }
+    .session-id { color: var(--muted); font-size: 12px; } .linked-session button { flex-shrink: 0; }
+    #session-panel { margin-top: 26px; padding-top: 24px; border-top: 1px solid var(--border); } #selected-issue { margin: 0 0 18px; padding: 12px 14px; background: var(--accent-soft); border-radius: 5px; font-weight: 600; overflow-wrap: anywhere; }
+    dialog.drawer { position: fixed; inset: 0 0 0 auto; margin: 0; width: min(520px, 100%); max-width: 100%; height: 100%; max-height: 100%; border: 0; border-radius: 0; padding: 24px; overflow-y: auto; }
+    #session-panel.drawer { margin: 0; padding: 24px; border: 0; }
+    dialog.drawer .drawer-header { display: flex; justify-content: space-between; align-items: start; gap: 16px; margin-bottom: 20px; } dialog.drawer .drawer-header h2 { margin: 4px 0; }
+    #session-form { max-width: 760px; } #session-status { order: -1; margin: 0; overflow-wrap: anywhere; } #session-status:not(:empty) { padding: 12px; background: var(--surface); border-radius: 5px; } #session-status:empty, #notice:empty { min-height: 0; margin: 0; }
+    #vault-backup-status, #vault-backup-files li, #vault-restore-status, #vault-restore-files li { overflow-wrap: anywhere; }
+    #publish-dialog, #update-dialog { width: min(760px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow-y: auto; }
+    #publish-dialog pre, #update-dialog pre { max-height: min(40vh, 420px); overflow: auto; }
+    #draft-issue, #publish-issue, #update-issue { display: grid; gap: 10px; overflow-wrap: anywhere; white-space: pre-line; }
+    #draft-issue > span, #publish-issue > span, #update-issue > span { display: grid; gap: 6px; }
+    #draft-issue select { width: 100%; min-width: 0; }
+    #update-dialog details { margin-block: 16px; }
+    #update-dialog summary { cursor: pointer; font-weight: 600; padding-block: 8px; }
+    #update-method { min-inline-size: 0; margin: 0 0 12px; padding: 0; border: 0; }
+    #update-method legend { margin-block-end: 8px; font-weight: 600; }
+    .update-modes { display: flex; flex-wrap: wrap; gap: 6px; }
+    .update-modes label { display: flex; flex: 1 1 180px; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 5px; cursor: pointer; }
+    .update-modes label:has(:checked) { border-color: var(--accent); background: var(--accent-soft); }
+    .update-modes input { min-height: 0; width: auto; margin: 0; accent-color: var(--accent); }
+    #update-append { display: grid; gap: 8px; margin-block-end: 12px; }
+    #update-original { min-height: 88px; max-height: 230px; }
+    #update-quote-text, #update-conclusion-text { min-height: 0; margin-block: 4px 0; }
+    #update-quote-summary { margin: 0; }
+    #update-summary, #update-status { margin-block: 12px; }
+    .update-added-preview { padding: 12px 14px; background: var(--surface); border-radius: 5px; overflow-wrap: anywhere; }
+    .update-added-preview > :last-child { margin-block-end: 0; }
+    .update-added-preview pre { min-height: 0; margin-block: 4px 12px; padding: 0; }
+    #update-footer { position: sticky; bottom: -20px; margin: 0 -20px -20px; padding: 14px 20px; background: var(--bg); border-top: 1px solid var(--border); }
+    #publish-target { overflow-wrap: anywhere; font-weight: 600; } #publish-status { margin: 12px 0; }
+    [data-panel="links"] > h2:not(:first-child) { margin-top: 30px; } ::selection { background: var(--accent-soft); color: var(--text); }
+    @media (max-width: 700px) { header { padding: 14px 16px; } main { padding: 0 16px 32px; } .columns { grid-template-columns: 1fr; gap: 28px; } .grid { grid-template-columns: 1fr; } .row { flex-direction: column; } }
+    @media (max-width: 700px) { #search-form .grid { grid-template-columns: 1fr; } .row { align-items: stretch; gap: 12px; } nav { gap: 20px; } }
+    /* 紧凑工作台：控件、列表与弹层共用一致的密度。 */
+    body { font-size: 13px; line-height: 1.45; }
+    header { padding: 12px 24px; }
+    header h1 { font-size: 16px; }
+    main { max-width: 1180px; padding: 0 24px 40px; }
+    nav { gap: 22px; }
+    nav button { min-height: 0; padding: 11px 2px 9px; }
+    section { padding-top: 20px; }
+    h2 { font-size: 18px; margin-bottom: 10px; }
+    h3 { font-size: 14px; margin-bottom: 8px; }
+    p { margin: 8px 0; }
+    .columns { grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr); gap: 32px; }
+    .stack { gap: 10px; }
+    label { font-size: 12px; gap: 4px; }
+    input, select { min-height: 32px; padding: 5px 9px; }
+    textarea { min-height: 120px; padding: 7px 9px; }
+    input[type="checkbox"] { min-height: 0; }
+    button { min-height: 32px; padding: 5px 10px; font-size: 12px; }
+    .actions { gap: 6px; align-items: center; }
+    #account-status { margin-bottom: 12px; }
+    #auth-help { margin-bottom: 10px; }
+    #search-form .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 12px; }
+    #search-form label:first-child { grid-column: span 2; }
+    #project-scope { margin-top: 12px; }
+    #search-result > p.muted { padding: 10px 0; margin-top: 8px; }
+    .row { padding: 11px 0; gap: 12px; }
+    .row p { font-size: 12px; margin-top: 3px; }
+    .empty { padding: 14px 0; }
+    .notice { margin-top: 8px; }
+    .link-group { padding: 12px 0; }
+    #links > .link-group:last-child { padding-block-end: 4px; }
+    .link-group-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; padding: 10px 12px; background: var(--surface); border-radius: 4px; }
+    .link-kind { flex: none; color: var(--accent); font-size: 11px; font-weight: 700; }
+    .link-group-title { min-width: 0; overflow-wrap: anywhere; }
+    .link-group-meta { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 12px; }
+    .link-session-list { margin-left: 20px; }
+    .link-session-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .link-session-row:last-child { border-bottom: 0; }
+    .link-session-details { min-width: 0; }
+    .link-session-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; overflow-wrap: anywhere; }
+    .link-primary { color: var(--accent); font-size: 11px; }
+    .linked-session { gap: 8px; padding: 8px 0; }
+    #linked-list .linked-session { display: block; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    #linked-list .linked-session-info { margin-bottom: 8px; }
+    #linked-list .session-title { margin-bottom: 8px; }
+    #linked-list .linked-session-info p { margin: 0; }
+    #linked-list .linked-session-actions { justify-content: flex-start; margin: 0; gap: 6px; }
+    .target-controls { display: grid; gap: 8px; }
+    .target-controls p { margin: 0; font-size: 12px; overflow-wrap: anywhere; }
+    #target-browser { border: 1px solid var(--border); padding: 10px 12px; border-radius: 5px; }
+    #target-browser-list { max-height: 260px; overflow-y: auto; margin-top: 8px; }
+    #target-browser button.secondary { min-height: 28px; padding: 3px 5px; border: 0; color: var(--accent); background: transparent; text-align: left; }
+    #target-browser > .actions button:first-child { padding-left: 0; }
+    #target-browser button.secondary:hover { text-decoration: underline; }
+    .target-browser-row { display: flex; align-items: center; gap: 12px; min-height: 36px; padding: 2px 8px; border-bottom: 1px solid #edf1ef; }
+    .target-browser-row:hover, .target-browser-row:focus-within { background: var(--surface); }
+    #target-browser .target-browser-row button { flex: 1; min-width: 0; min-height: 32px; padding: 4px 0; color: var(--text); overflow-wrap: anywhere; }
+    .target-browser-children { margin-left: 14px; padding-left: 12px; border-left: 1px solid var(--border); }
+    .target-browser-row small { flex: none; min-width: 42px; text-align: right; color: var(--muted); font-size: 11px; }
+    #target-browser-status { margin-top: 8px; }
+    .issue-pagination { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding: 14px 0; }
+    [data-panel="drafts"] .columns { grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); gap: 36px; }
+    [data-panel="drafts"] .columns > div { min-width: 0; }
+    #drafts { border-top: 1px solid var(--border); margin-top: 16px; }
+    #drafts .draft-list-item { display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 14px 0; }
+    #drafts .draft-list-details { min-width: 0; }
+    #drafts .draft-list-details strong { line-height: 1.45; }
+    #drafts .draft-list-details p { margin-top: 4px; overflow-wrap: anywhere; }
+    #drafts .draft-list-actions { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 6px; }
+    #drafts .draft-list-actions button { flex: none; }
+    #draft-issue { margin: 0 0 14px; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+    #draft-issue > span { grid-column: 1 / -1; }
+    #draft-issue > span:not(:first-child) { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 10px 12px; background: var(--surface); border-radius: 4px; }
+    #draft-issue > span:not(:first-child) > span { min-width: 0; overflow-wrap: anywhere; }
+    #draft-issue > span > button { flex: none; }
+    #draft-session { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
+    #draft-session > span:first-child { flex: 1 1 100%; overflow-wrap: anywhere; }
+    #draft-form { padding-top: 16px; border-top: 1px solid var(--border); }
+    .draft-content-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .draft-content-toolbar > span { font-size: 12px; font-weight: 600; }
+    .draft-content-tabs { display: flex; gap: 4px; }
+    .draft-content-tabs button[aria-selected="true"] { background: var(--surface); border-color: var(--muted); }
+    #draft-content-edit textarea, #draft-content-preview { min-height: 360px; }
+    #draft-content-preview { padding: 16px; border: 1px solid var(--border); border-radius: 5px; overflow-wrap: anywhere; overflow-x: auto; }
+    #draft-content-preview > :first-child { margin-top: 0; }
+    #draft-content-preview pre { min-height: 0; overflow-x: auto; }
+    #draft-content-preview code { font-family: ui-monospace, monospace; }
+    #draft-content-preview table { border-collapse: collapse; }
+    #draft-content-preview th, #draft-content-preview td { border: 1px solid var(--border); padding: 4px 8px; }
+    #draft-content-preview .markdown-link { text-decoration: underline; text-underline-offset: 2px; }
+    dialog.drawer, #session-panel.drawer { width: min(560px, 100%); padding: 18px 20px; }
+    dialog.drawer .drawer-header { align-items: center; margin-bottom: 14px; }
+    dialog.drawer .drawer-header h2 { margin: 0; }
+    #selected-issue { margin-bottom: 12px; padding: 9px 10px; }
+    #session-panel section { padding-top: 12px; }
+    #draft-issue, #publish-issue, #update-issue { gap: 6px; }
+    #draft-issue > span, #publish-issue > span, #update-issue > span { gap: 4px; }
+    #draft-issue > span > button { justify-self: start; }
+    #location-status:empty, #location-results:empty, [role="status"]:empty { display: none; }
+    [data-panel="links"] > h2:not(:first-child) { margin-top: 24px; }
+    #links:has(> .link-group) + h2 { margin-block-start: 16px; }
+    #reservations-section > h3, #cleanup-section > h3, [data-panel="knowledge"] .columns > div > h3:not(:first-child) { margin-top: 20px; }
+    [data-panel="knowledge"] .columns > div > label { margin-bottom: 10px; }
+    @media (max-width: 700px) {
+      header { padding: 10px 16px; }
+      main { padding: 0 16px 32px; }
+      .columns { grid-template-columns: 1fr; gap: 24px; }
+      [data-panel="drafts"] .columns { grid-template-columns: 1fr; gap: 24px; }
+      #draft-issue { grid-template-columns: minmax(0, 1fr); }
+      #draft-issue > span { grid-column: auto; }
+      #draft-issue > button { justify-self: start; }
+      #search-form .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #search-form label:first-child { grid-column: span 2; }
+      .row { align-items: stretch; gap: 8px; }
+      .link-session-list { margin-left: 12px; }
+      .link-session-row { align-items: flex-start; flex-direction: column; gap: 6px; }
+      dialog.drawer, #session-panel.drawer { padding: 16px; }
+    }
+    @media (max-width: 400px) { #search-form .grid { grid-template-columns: 1fr; } #search-form label:first-child { grid-column: auto; } }
+  </style>
+</head>
+<body>
+  <header><h1>开发管家</h1><span id="connection" class="status">正在连接</span></header>
+  <main>
+    <nav role="tablist" aria-label="管理视图"><button type="button" role="tab" data-view="issues" aria-selected="true">工作项</button><button type="button" role="tab" data-view="links" aria-selected="false">关联管理</button><button type="button" role="tab" data-view="drafts" aria-selected="false">知识草稿</button><button type="button" role="tab" data-view="knowledge" aria-selected="false">知识库</button></nav>
+    <div id="notice" class="notice" role="status" aria-live="polite"></div>
+    <section data-panel="issues">
+      <h2>我的工作项</h2>
+      <p id="account-status" class="muted" role="status">正在获取猪齿鱼账号和项目…</p>
+      <details id="auth-help"><summary>Choerodon 重新登录说明</summary><p id="auth-context" class="muted">尚未确认当前 Choerodon 账号与 API 环境，请核对插件配置。</p><ol><li>在本机终端确认 API 环境与插件配置的 <code>C7N_API_URL</code> 相同；需要切换时，先设置该环境变量。</li><li>运行 <code>c7n login</code>，在终端安全提示中输入该 Choerodon 环境的个人访问令牌（PAT）。不要把令牌写进命令参数或粘贴到本页面。</li><li>登录完成后，点击“刷新账号和项目”，核对显示的账号、租户及环境，再重新查询工作项。</li></ol><p class="muted">加载失败也可能来自网络、API 配置或项目权限，请结合原错误核对。重新登录与刷新不会删除本地草稿或关联。</p></details>
+      <form id="search-form" class="stack"><div class="grid"><label>项目<select name="projectId" required disabled><option value="">正在加载项目</option></select></label><label>范围<select name="scope"><option value="mine">分配给我</option><option value="all">项目全部工作项</option></select></label><label>冲刺<select name="sprintId" required disabled><option value="">请先选择项目</option></select></label><label>工作项类型<select name="typeId" disabled><option value="">请先选择项目</option></select></label><label>状态<select name="statusId" disabled><option value="">请先选择类型</option></select></label><label>关键词<input name="keyword" maxlength="200"></label></div><div class="actions"><button type="submit" disabled>查询工作项</button><button type="button" id="reload-account" class="secondary">刷新账号和项目</button></div><p id="filter-status" class="muted" role="status"></p></form>
+      <p id="project-scope" class="muted"></p><div id="search-result" aria-live="polite"></div>
+      <dialog id="session-panel" class="drawer" aria-labelledby="session-heading"><div class="drawer-header"><h2 id="session-heading">关联会话与工程</h2><button type="button" id="close-session" class="secondary">关闭</button></div><p id="selected-issue"></p><details open><summary>工作项详情</summary><p id="issue-detail-status" class="muted" role="status"></p><pre id="issue-detail" hidden></pre><p class="muted">详情来自猪齿鱼；未返回的描述或链接不会自动补全。</p></details><form id="session-form" class="stack"><label>Codex 项目<select name="codexProject" required disabled><option value="">正在加载项目</option></select></label><div class="actions"><button type="button" id="more-projects" class="secondary" hidden>加载更多项目</button><button type="button" id="project-link-add" class="secondary" disabled>关联所选工程</button></div><section aria-labelledby="project-links-heading"><h3 id="project-links-heading">已关联工程</h3><div id="project-links-list"></div><div class="actions"><button type="button" id="project-links-refresh" class="secondary">刷新关联工程</button><button type="button" id="project-links-more" class="secondary" hidden>加载更多关联工程</button></div><p id="project-links-status" class="muted" role="status"></p></section><label>会话关键词<input name="sessionSearch" type="search" maxlength="200" disabled></label><div class="actions"><button type="button" id="session-search" class="secondary" disabled>搜索会话</button></div><label>工程目录下的会话<select name="sessionId" disabled><option value="">请选择项目</option></select></label><div class="actions"><button type="button" id="more-sessions" class="secondary" hidden>加载更多会话</button></div><label class="check"><input type="checkbox" name="primary">设为该会话的主工作项</label><div class="actions"><button type="submit" disabled>关联已有会话</button><button type="button" id="create-session" class="secondary" disabled>创建会话并关联</button><button type="button" id="cancel-session" class="secondary">取消</button></div><p class="muted">会话按工程目录列出，不保证均属于所选项目。</p><p id="session-status" class="muted" role="status"></p></form></dialog>
+      <dialog id="linked-panel" class="drawer" aria-labelledby="linked-heading"><div class="drawer-header"><h2 id="linked-heading">已关联会话</h2><button type="button" id="close-linked" class="secondary">关闭</button></div><p id="linked-issue"></p><div id="linked-list" aria-live="polite"></div></dialog>
+      <dialog id="notes-panel" class="drawer" aria-labelledby="notes-heading"><div class="drawer-header"><h2 id="notes-heading">工作项的知识记录</h2><button type="button" id="close-notes" class="secondary">关闭</button></div><p id="notes-issue"></p><div id="notes-linked" aria-live="polite"></div><div class="actions"><button type="button" id="notes-draft" class="secondary">创建知识草稿</button></div><h3>关联已有笔记</h3><label>知识库笔记<select id="notes-select" disabled><option value="">正在加载</option></select></label><div class="actions"><button type="button" id="notes-add" disabled>关联笔记</button></div><p id="notes-status" role="status" aria-live="polite"></p></dialog>
+    </section>
+    <section data-panel="links" hidden><h2>工作项与会话</h2><div id="links"></div><h2>创建记录</h2><div id="creation-attempts"></div><h2>待关联笔记</h2><button id="pending-links-refresh" type="button" class="secondary">查看待关联笔记</button><p id="pending-links-status" role="status" aria-live="polite"></p><div id="pending-links-list"></div><h2>索引备份与恢复</h2><p class="muted">包含关联与草稿，不包含笔记、附件或 Codex 会话；备份未加密，请检查敏感信息。</p><div class="actions"><button id="backup-export" type="button" class="secondary">导出索引</button></div><label>选择索引备份<input id="backup-file" type="file" accept=".json,application/json"></label><p id="backup-status" role="status" aria-live="polite"></p><div id="backup-preview"></div><button id="backup-import" type="button" hidden>确认导入</button><h2>知识库备份</h2><p class="muted">包含知识库内普通文件和附件，不含索引与会话。备份未加密，建议备份时暂停修改笔记。</p><div class="stack"><label>新备份目录的绝对路径<input id="vault-backup-target" maxlength="4096" placeholder="输入本机目录的绝对路径"></label><div class="actions"><button id="vault-backup-preview" type="button" class="secondary">预览知识库备份</button><button id="vault-backup-create" type="button" hidden>确认创建备份</button></div><p id="vault-backup-status" role="status" aria-live="polite"></p><div id="vault-backup-files"></div></div><h2>恢复知识库备份</h2><p class="muted">仅支持含校验清单的备份；恢复到新目录，不覆盖或切换当前知识库。清单不提供防篡改认证。</p><div class="stack"><label>备份目录的绝对路径<input id="vault-restore-source" maxlength="4096" placeholder="输入本机目录的绝对路径"></label><label>新恢复目录的绝对路径<input id="vault-restore-target" maxlength="4096" placeholder="输入本机目录的绝对路径"></label><div class="actions"><button id="vault-restore-preview" type="button" class="secondary">校验并预览恢复</button><button id="vault-restore-create" type="button" hidden>确认恢复</button></div><p id="vault-restore-status" role="status" aria-live="polite"></p><div id="vault-restore-files"></div></div></section>
+    <section data-panel="drafts" hidden><div class="columns"><div><h2>知识草稿</h2><p class="muted">草稿保存在本机，可预览后写入知识库。</p><div id="drafts"></div><div id="reservations-section" hidden><h3>发布预留</h3><button type="button" id="reservations-refresh" class="secondary">查看发布预留</button><p id="reservations-status" role="status"></p><div id="reservations-list"></div></div><p id="reservations-load-error" role="status" hidden></p><div id="cleanup-section" hidden><h3>更新锁清理</h3><button type="button" id="cleanup-refresh" class="secondary">查看待清理记录</button><p id="cleanup-status" role="status"></p><div id="cleanup-list" aria-live="polite"></div></div><p id="cleanup-load-error" role="status" hidden></p></div><div><h2 id="draft-heading">新建草稿</h2><p id="draft-issue" class="muted"></p><p id="draft-session" class="muted"></p><form id="draft-form" class="stack"><label>标题<input name="title" required maxlength="500"></label><label>目标位置（知识库内相对路径）<input name="target" maxlength="2048" placeholder="例如：项目/记录.md"></label><label>推荐关键词<input id="location-keywords" maxlength="500" placeholder="多个关键词用空格分隔"></label><div class="actions"><button type="button" id="recommend-locations" class="secondary">推荐位置</button></div><p id="location-status" class="muted" role="status"></p><div id="location-results" aria-live="polite"></div><div class="draft-content-toolbar"><span>内容</span><div class="draft-content-tabs" role="tablist" aria-label="正文视图"><button id="draft-edit-tab" class="secondary" type="button" role="tab" aria-selected="true">编辑</button><button id="draft-preview-tab" class="secondary" type="button" role="tab" aria-selected="false">预览</button></div></div><label id="draft-content-edit"><span class="muted">草稿正文（Markdown）</span><textarea name="content" required maxlength="100000"></textarea></label><div id="draft-content-preview" aria-label="Markdown 预览" hidden></div><div class="actions"><button type="submit">保存草稿</button><button type="button" id="cancel-edit" class="secondary">清空</button></div></form></div></div></section>
+    <section data-panel="knowledge" hidden><h2>知识库</h2><div class="columns"><div><label>笔记范围<select id="knowledge-scope"><option value="catalog">链路记录</option><option value="all">整个知识库</option></select></label><label>筛选已加载的笔记路径<input id="knowledge-filter" type="search" maxlength="200"></label><label>搜索正文<input id="knowledge-query" type="search" maxlength="200" placeholder="例如：事件流"></label><div class="actions"><button id="knowledge-search" type="button">搜索正文</button><button id="knowledge-reload" type="button" class="secondary">刷新笔记</button></div><div id="knowledge-search-results" aria-live="polite"></div><p id="knowledge-list-status" class="muted" role="status"></p><div id="knowledge-list" aria-live="polite"></div><button id="knowledge-more" type="button" class="secondary" hidden>加载更多记录</button><h3>知识目录预留</h3><button id="catalog-reservations-refresh" type="button" class="secondary">查看目录预留</button><p id="catalog-reservations-status" role="status"></p><div id="catalog-reservations-list" aria-live="polite"></div></div><div><h3 id="knowledge-title">选择笔记</h3><p id="knowledge-status" class="muted" role="status"></p><pre id="knowledge-content" hidden></pre><button id="knowledge-inspect" type="button" class="secondary" hidden>检查图片和链接</button><div id="knowledge-references" aria-live="polite"></div></div></div></section>
+  </main>
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message"><h2 id="confirm-title">确认操作</h2><p id="confirm-message"></p><div class="actions"><button type="button" value="cancel" class="secondary" autofocus>取消</button><button type="button" value="confirm">确认</button></div></dialog>
+  <dialog id="generate-dialog" aria-labelledby="generate-heading"><h2 id="generate-heading">确认发送会话内容</h2><p id="generate-range" class="muted"></p><p>以下会话内容将发送给本机配置的默认 Codex 模型，可能由外部模型服务处理。请检查敏感信息。系统会附加固定指令，要求模型仅依据会话生成可审核的 Markdown 草稿。</p><pre id="generate-input" style="max-height:40vh;overflow:auto"></pre><p id="generate-status" role="status" aria-live="polite"></p><div class="actions"><button type="button" id="generate-cancel" class="secondary">取消</button><button type="button" id="generate-confirm">确认发送并生成</button></div></dialog>
+  <dialog id="publish-dialog" aria-labelledby="publish-heading"><h2 id="publish-heading">新建知识笔记</h2><p class="muted">请检查敏感信息；自动检测可能遗漏。此操作只新建文件，已有文件不会被覆盖。</p><h3>目标路径</h3><p id="publish-target"></p><p id="publish-issue" class="muted"></p><h3>Markdown 内容</h3><pre id="publish-content"></pre><button id="publish-compare" type="button" class="secondary">检查目标是否已存在</button><div id="publish-comparison" aria-live="polite"></div><div id="publish-references" aria-live="polite"></div><p class="muted">请自行确认附件已随笔记备份；此操作不会自动复制附件。</p><p id="publish-status" role="status" aria-live="polite"></p><div class="actions"><button id="publish-close" type="button" class="secondary">关闭</button><button id="publish-inspect" type="button" class="secondary" hidden>核对目标文件</button><button id="publish-link" type="button" class="secondary" hidden>关联工作项</button><button id="publish-confirm" type="button" disabled>确认新建</button></div></dialog>
+  <dialog id="update-dialog" aria-labelledby="update-heading">
+    <h2 id="update-heading">更新已有笔记</h2>
+    <h3>目标路径</h3>
+    <p id="update-target"></p>
+    <p id="update-issue" class="muted"></p>
+    <fieldset id="update-method">
+      <legend>更新方式</legend>
+      <div class="update-modes">
+        <label><input type="radio" name="update-mode" value="append" checked>保留原文，追加结论</label>
+        <label><input type="radio" name="update-mode" value="replace">替换整篇笔记</label>
+      </div>
+    </fieldset>
+    <div id="update-append">
+      <label>笔记原文（只读，可划选）<textarea id="update-original" readonly rows="4"></textarea></label>
+      <div class="actions"><button id="update-quote" type="button" class="secondary" disabled>引用所选文字</button><button id="update-reload" type="button" class="secondary">重新读取原文</button></div>
+      <p id="update-quote-summary" class="muted" role="status">尚未引用原文片段。</p>
+      <pre id="update-quote-text" aria-label="已引用的原文片段" hidden></pre>
+      <details><summary>本次结论（草稿正文）</summary><pre id="update-conclusion-text"></pre></details>
+    </div>
+    <div class="actions" id="update-preview-actions"><button id="update-preview" type="button" class="secondary" disabled>预览追加结果</button></div>
+    <p id="update-summary" class="muted"></p>
+    <div id="update-result" hidden>
+      <details id="update-diff-section" open><summary>本次差异</summary><div id="update-diff"></div></details>
+      <details id="update-before-section"><summary id="update-before-label">查看完整原笔记</summary><pre id="update-before"></pre></details>
+      <details id="update-after-section"><summary>查看更新后的完整 Markdown</summary><pre id="update-after"></pre></details>
+    </div>
+    <p id="update-status" role="status" aria-live="polite"></p>
+    <div id="update-footer" class="actions"><button id="update-close" type="button" class="secondary">关闭</button><button id="update-inspect" type="button" class="secondary" hidden>核对目标内容</button><button id="update-recover" type="button" class="secondary" hidden>接受当前内容并解除冻结</button><button id="update-confirm" type="button" disabled>确认追加到笔记</button></div>
+  </dialog>
+  <script type="module">/* WIDGET_BUNDLE */</script>
+</body>
+</html>

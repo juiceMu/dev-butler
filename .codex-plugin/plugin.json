@@ -1,0 +1,7 @@
+{
+  "name": "choerodon-yuque-link",
+  "version": "0.1.0",
+  "description": "Choerodon 与本地知识库联动",
+  "mcpServers": "./.mcp.json",
+  "skills": "./skills/"
+}

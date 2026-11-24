@@ -1,0 +1,10 @@
+{
+  "name": "work-link-marketplace",
+  "interface": { "displayName": "工作联动" },
+  "plugins": [{
+    "name": "choerodon-yuque-link",
+    "source": { "source": "local", "path": "." },
+    "policy": { "installation": "AVAILABLE", "authentication": "ON_USE" },
+    "category": "productivity"
+  }]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "dev-butler",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "esbuild widget.js --bundle --format=esm --outfile=widget.bundle.js",
+    "test": "node --test test/*.test.cjs",
+    "test:browser": "node --test browser-test/*.test.cjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "1.7.5",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "markdown-it": "15.0.3",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "playwright": "^1.61.1"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "x-assistant-bridge",
+  "name": "开发管家安全更新桥",
+  "version": "0.1.0",
+  "minAppVersion": "1.1.0",
+  "description": "为开发管家提供经确认的 Obsidian Markdown 原文比较与安全更新。",
+  "author": "开发管家",
+  "isDesktopOnly": true
+}
